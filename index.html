@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArchivePull</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <div class="app-header">
+    <div class="logo-container">
+      <img src="./assets/logo.png" alt="ArchivePull Logo" class="app-logo">
+      <h1>ArchivePull</h1>
+    </div>
+  </div>
+  <div class="container">
+    <div class="left-column">
+      <div class="card">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M12 3a6 6 0 0 0-6 6v12h12V9a6 6 0 0 0-6-6z"></path><path d="M6 9a6 6 0 0 1 12 0"></path><path d="M6 19v-3"></path><path d="M18 19v-3"></path></svg>
+          <h2>Download & Transcode Settings</h2>
+        </div>
+        
+        <div class="form-group">
+          <label for="url">YouTube URL</label>
+          <div class="input-wrapper">
+            <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=...">
+          </div>
+          <div id="video-preview" class="video-preview hidden">
+            <div class="video-preview-container">
+              <img id="thumbnail" src="" alt="Video thumbnail">
+              <div class="video-info">
+                <h4 id="video-title">Video Title</h4>
+                <p id="video-channel">Channel Name</p>
+                <p id="video-duration">Duration: 00:00</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="destination">Destination Folder</label>
+          <div class="input-with-button">
+            <input type="text" id="destination" readonly>
+            <button id="browse-btn">Browse...</button>
+          </div>
+        </div>
+        
+        <h3>Transcode Options</h3>
+        
+        <div class="form-group">
+          <label for="codec">Codec</label>
+          <select id="codec">
+            <optgroup label="H.264/H.265">
+              <option value="H.264 (GPU)" selected>H.264 (GPU)</option>
+              <option value="H.264 (CPU)">H.264 (CPU)</option>
+              <option value="H.265 (GPU)">H.265 (GPU)</option>
+              <option value="H.265 (CPU)">H.265 (CPU)</option>
+            </optgroup>
+            <optgroup label="ProRes">
+              <option value="ProRes 422">ProRes 422</option>
+              <option value="ProRes 422 HQ">ProRes 422 HQ</option>
+              <option value="ProRes 422 LT">ProRes 422 LT</option>
+              <option value="ProRes 4444">ProRes 4444</option>
+            </optgroup>
+            <optgroup label="Other Professional">
+              <option value="DNxHD">DNxHD/DNxHR</option>
+              <option value="AV1">AV1</option>
+            </optgroup>
+          </select>
+          
+          <!-- H.264/H.265 Descriptions -->
+          <div id="desc-h-264-gpu" class="description-box codec-description">
+            <p><strong>H.264 (GPU):</strong> Fast encoding using hardware acceleration. Good for sharing online with wide compatibility. Best for 1080p content.</p>
+          </div>
+          <div id="desc-h-264-cpu" class="description-box codec-description hidden">
+            <p><strong>H.264 (CPU):</strong> Higher quality than GPU encoding but slower. Better for archiving when quality matters more than speed.</p>
+          </div>
+          <div id="desc-h-265-gpu" class="description-box codec-description hidden">
+            <p><strong>H.265 (GPU):</strong> Better compression than H.264 with hardware acceleration. Ideal for 4K content with smaller file sizes.</p>
+          </div>
+          <div id="desc-h-265-cpu" class="description-box codec-description hidden">
+            <p><strong>H.265 (CPU):</strong> Highest quality H.265 encoding but very slow. Best when maximum quality and compression are needed.</p>
+          </div>
+          
+          <!-- ProRes Descriptions -->
+          <div id="desc-prores-422" class="description-box codec-description hidden">
+            <p><strong>ProRes 422:</strong> Apple's professional codec with 4:2:2 chroma subsampling. Good balance of quality and file size for editing.</p>
+          </div>
+          <div id="desc-prores-422-hq" class="description-box codec-description hidden">
+            <p><strong>ProRes 422 HQ:</strong> Higher quality version of ProRes 422. Recommended for most professional editing workflows.</p>
+          </div>
+          <div id="desc-prores-422-lt" class="description-box codec-description hidden">
+            <p><strong>ProRes 422 LT:</strong> Lighter version of ProRes 422 with smaller file sizes. Good for less demanding editing tasks.</p>
+          </div>
+          <div id="desc-prores-4444" class="description-box codec-description hidden">
+            <p><strong>ProRes 4444:</strong> Highest quality ProRes with 4:4:4 chroma subsampling. Best for color grading and effects work.</p>
+          </div>
+          
+          <!-- Other Professional Descriptions -->
+          <div id="desc-dnxhd" class="description-box codec-description hidden">
+            <p><strong>DNxHD/DNxHR:</strong> Avid's professional codec, excellent for editing in Media Composer and other NLEs. Similar quality to ProRes.</p>
+          </div>
+          <div id="desc-av1" class="description-box codec-description hidden">
+            <p><strong>AV1:</strong> Newest open-source codec with excellent compression. Slower encoding but smaller files. Good for archiving.</p>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="label-with-help">
+            <label>Container Format</label>
+            <button id="toggle-container-help" class="help-toggle" onclick="window.toggleHelp('container-help-description')">?</button>
+          </div>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="container" value=".mov" id="container-mov" checked>
+              <span>.mov</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="container" value=".mp4" id="container-mp4">
+              <span>.mp4</span>
+            </label>
+          </div>
+          <div id="container-help-description" class="description-box hidden">
+            <p><strong>.mov:</strong> Apple's container format, preferred for ProRes and professional workflows. Better compatibility with editing software.</p>
+            <p><strong>.mp4:</strong> More widely compatible container, better for sharing and web playback. Recommended for H.264/H.265 codecs.</p>
+          </div>
+        </div>
+        
+        <div id="bitrate-section" class="collapsible-section collapsed">
+          <div class="collapsible-header" onclick="toggleSection('bitrate-section')">
+            <h3>Bitrate Settings</h3>
+            <button type="button" class="toggle-button" onclick="event.stopPropagation();">▼</button>
+          </div>
+          <div class="collapsible-content" style="display: none;">
+            <div class="form-group">
+              <div class="label-with-help">
+                <label>Bitrate Settings</label>
+                <button id="toggle-bitrate-help" class="help-toggle">?</button>
+              </div>
+              <div id="bitrate-description" class="description-box hidden">
+                <p>These settings control the quality and file size of your video. Higher bitrates = better quality but larger files.</p>
+                <p>The app automatically detects the resolution and frame rate of the YouTube video and applies the appropriate bitrate.</p>
+                <p>These values are based on YouTube's own recommendations for optimal quality.</p>
+              </div>
+              <div class="bitrate-settings">
+                <div class="bitrate-row">
+                  <span>8K (Standard FPS)</span>
+                  <input type="number" id="bitrate-8k-standard" value="120" min="80" max="200">
+                  <span>Mbps</span>
+                </div>
+                <div class="bitrate-row">
+                  <span>8K (High FPS)</span>
+                  <input type="number" id="bitrate-8k-high" value="180" min="120" max="300">
+                  <span>Mbps</span>
+                </div>
+                <div class="bitrate-row">
+                  <span>4K (Standard FPS)</span>
+                  <input type="number" id="bitrate-4k-standard" value="40" min="35" max="56">
+                  <span>Mbps</span>
+                </div>
+                <div class="bitrate-row">
+                  <span>4K (High FPS)</span>
+                  <input type="number" id="bitrate-4k-high" value="60" min="53" max="85">
+                  <span>Mbps</span>
+                </div>
+                <div class="bitrate-row">
+                  <span>1440p (Standard FPS)</span>
+                  <input type="number" id="bitrate-1440p-standard" value="16" min="10" max="30">
+                  <span>Mbps</span>
+                </div>
+                <div class="bitrate-row">
+                  <span>1440p (High FPS)</span>
+                  <input type="number" id="bitrate-1440p-high" value="24" min="15" max="40">
+                  <span>Mbps</span>
+                </div>
+                <div class="bitrate-row">
+                  <span>1080p (Standard FPS)</span>
+                  <input type="number" id="bitrate-1080p-standard" value="8" min="5" max="15">
+                  <span>Mbps</span>
+                </div>
+                <div class="bitrate-row">
+                  <span>1080p (High FPS)</span>
+                  <input type="number" id="bitrate-1080p-high" value="12" min="8" max="20">
+                  <span>Mbps</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="metadata-section" class="collapsible-section collapsed">
+          <div class="collapsible-header" onclick="toggleSection('metadata-section')">
+            <h3>Captions & Metadata</h3>
+            <button type="button" class="toggle-button" onclick="event.stopPropagation();">▼</button>
+          </div>
+          <div class="collapsible-content" style="display: none;">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="include-transcript" checked>
+                <span>Include Transcript</span>
+              </label>
+            </div>
+            
+            <div class="form-group">
+              <label>Metadata to Include</label>
+              <div class="metadata-checkboxes">
+                <div class="checkbox-row">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="metadata" value="Title" checked>
+                    <span>Title</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="metadata" value="Channel" checked>
+                    <span>Channel</span>
+                  </label>
+                </div>
+                <div class="checkbox-row">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="metadata" value="YouTube URL" checked>
+                    <span>YouTube URL</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="metadata" value="Upload Date" checked>
+                    <span>Upload Date</span>
+                  </label>
+                </div>
+                <div class="checkbox-row">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="metadata" value="Duration" checked>
+                    <span>Duration</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="metadata" value="Description" checked>
+                    <span>Description</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button id="download-btn" class="primary-button">Download & Transcode</button>
+      </div>
+    </div>
+    
+    <div class="right-column">
+      <div class="card">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <h2>Status</h2>
+        </div>
+        
+        <div id="status-message">Ready to start. Enter a YouTube URL and click Download & Transcode.</div>
+        
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div id="progress" class="progress-fill"></div>
+          </div>
+          <div id="progress-text">0%</div>
+        </div>
+        
+        <div id="log-section" class="collapsible-section collapsed">
+          <div class="collapsible-header" onclick="toggleSection('log-section')">
+            <div class="log-header-content">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <h2>Process Log</h2>
+            </div>
+            <button type="button" class="toggle-button" onclick="event.stopPropagation();">▼</button>
+          </div>
+          <div class="collapsible-content" style="display: none;">
+            <div class="log-container">
+              <pre id="log-output"># YT-DLP Web App + Transcode Pipeline
+# System ready</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="renderer.js"></script>
+</body>
+</html> 

@@ -1,0 +1,19 @@
+# Download best video+audio combo
+-f bv*+ba/b
+
+# Merge to .mkv before postprocessing
+--merge-output-format mkv
+
+# Output naming
+-o "%(title).200s [%(id)s].%(ext)s"
+
+# Save video metadata
+--write-info-json
+
+# Get captions (auto if manual doesn't exist)
+--write-auto-sub
+--sub-lang en
+--convert-subs srt
+
+# Trigger postprocessing script
+--exec "./yt-postprocess.sh {}" 
